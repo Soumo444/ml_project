@@ -107,6 +107,17 @@ git commit -m "Describe the change"
 git push origin main
 ```
 
+### Verify the deployment
+
+After the pipeline reports **Succeeded**, check the environment URL:
+
+```powershell
+Invoke-WebRequest http://Student-math-score-env.eba-2bxkhthf.ap-southeast-2.elasticbeanstalk.com/ -UseBasicParsing
+```
+
+The page should return HTTP 200 and show the prediction form. You can also check
+the environment health in the Elastic Beanstalk console.
+
 ### Manual bundle (fallback)
 
 If you are not using the pipeline, build the minimal source bundle:
