@@ -8,6 +8,8 @@ The app is deployed on AWS Elastic Beanstalk in `ap-southeast-2`:
 
 http://Student-math-score-env.eba-2bxkhthf.ap-southeast-2.elasticbeanstalk.com/
 
+Every push to `main` is deployed automatically by AWS CodePipeline.
+
 ## Set up the development environment
 
 Install the full local data-science stack:
