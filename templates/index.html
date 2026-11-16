@@ -1,0 +1,196 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Math Score Predictor</title>
+  <style>
+    :root {
+      color-scheme: light;
+      font-family: "Segoe UI", Arial, sans-serif;
+      color: #17233b;
+      background: #f2f5fa;
+    }
+
+    * { box-sizing: border-box; }
+
+    body {
+      margin: 0;
+      min-height: 100vh;
+      padding: 48px 18px;
+      background:
+        radial-gradient(ellipse at 12% 4%, #dceaff 0, transparent 34rem),
+        #f2f5fa;
+    }
+
+    main {
+      width: min(100%, 760px);
+      margin: 0 auto;
+    }
+
+    .card {
+      overflow: hidden;
+      border: 1px solid #e0e7f1;
+      border-radius: 20px;
+      background: #fff;
+      box-shadow: 0 18px 55px rgb(34 54 87 / 10%);
+    }
+
+    header {
+      padding: 32px 36px 26px;
+      color: #fff;
+      background: #172b4d;
+    }
+
+    .eyebrow {
+      margin: 0 0 10px;
+      color: #a9c7ff;
+      font-size: 0.75rem;
+      font-weight: 700;
+      letter-spacing: 0.12em;
+      text-transform: uppercase;
+    }
+
+    h1 { margin: 0; font-size: clamp(1.7rem, 4vw, 2.2rem); }
+
+    header p:last-child {
+      max-width: 580px;
+      margin: 10px 0 0;
+      color: #d7e2f5;
+      line-height: 1.55;
+    }
+
+    form { padding: 30px 36px 36px; }
+
+    .grid {
+      display: grid;
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+      gap: 20px;
+    }
+
+    .field { display: flex; flex-direction: column; gap: 8px; }
+    .field.wide { grid-column: 1 / -1; }
+
+    label { font-size: 0.9rem; font-weight: 650; }
+
+    select, input {
+      width: 100%;
+      min-height: 46px;
+      padding: 10px 12px;
+      border: 1px solid #cbd5e3;
+      border-radius: 9px;
+      background: #fff;
+      color: #17233b;
+      font: inherit;
+    }
+
+    select:focus, input:focus {
+      border-color: #3b72d9;
+      outline: 3px solid rgb(59 114 217 / 16%);
+    }
+
+    .hint { margin: 0; color: #63718a; font-size: 0.82rem; }
+
+    button {
+      width: 100%;
+      min-height: 48px;
+      margin-top: 26px;
+      border: 0;
+      border-radius: 9px;
+      background: #2862c5;
+      color: #fff;
+      cursor: pointer;
+      font: inherit;
+      font-weight: 700;
+    }
+
+    button:hover { background: #1e50a5; }
+
+    .message {
+      margin: 0 36px 28px;
+      padding: 14px 16px;
+      border-radius: 10px;
+      line-height: 1.5;
+    }
+
+    .error { border: 1px solid #f1b9b9; background: #fff1f1; color: #8d2424; }
+    .result { border: 1px solid #a9dfc1; background: #effaf3; color: #145c35; }
+    .result strong { display: block; margin-top: 3px; font-size: 1.65rem; }
+
+    footer {
+      padding: 0 36px 28px;
+      color: #63718a;
+      font-size: 0.82rem;
+      line-height: 1.5;
+    }
+
+    @media (max-width: 560px) {
+      body { padding: 20px 12px; }
+      header, form { padding-right: 22px; padding-left: 22px; }
+      .grid { grid-template-columns: 1fr; }
+      .field.wide { grid-column: auto; }
+      .message { margin-right: 22px; margin-left: 22px; }
+      footer { padding-right: 22px; padding-left: 22px; }
+    }
+  </style>
+</head>
+<body>
+  <main>
+    <section class="card" aria-labelledby="page-title">
+      <header>
+        <p class="eyebrow">Student performance</p>
+        <h1 id="page-title">Math Score Predictor</h1>
+        <p>Enter the student's details and reading/writing scores to estimate their math score.</p>
+      </header>
+
+      <form method="post">
+        <div class="grid">
+          {% for field, options in categorical_options.items() %}
+          <div class="field{% if field == 'parental_level_of_education' %} wide{% endif %}">
+            <label for="{{ field }}">{{ field_labels[field] }}</label>
+            <select id="{{ field }}" name="{{ field }}" required>
+              <option value="" disabled {% if not form_data.get(field) %}selected{% endif %}>Choose an option</option>
+              {% for option in options %}
+              <option value="{{ option }}" {% if form_data.get(field) == option %}selected{% endif %}>{{ option|title }}</option>
+              {% endfor %}
+            </select>
+          </div>
+          {% endfor %}
+
+          {% for field in ('reading_score', 'writing_score') %}
+          <div class="field">
+            <label for="{{ field }}">{{ field_labels[field] }}</label>
+            <input
+              id="{{ field }}"
+              name="{{ field }}"
+              type="number"
+              min="0"
+              max="100"
+              step="1"
+              value="{{ form_data.get(field, '') }}"
+              required
+            >
+          </div>
+          {% endfor %}
+        </div>
+        <button type="submit">Predict math score</button>
+      </form>
+
+      {% if error %}
+      <div class="message error" role="alert">{{ error }}</div>
+      {% endif %}
+
+      {% if prediction is not none %}
+      <div class="message result" role="status">
+        Predicted math score
+        <strong>{{ "%.2f"|format(prediction) }}</strong>
+      </div>
+      {% endif %}
+
+      <footer>
+        This estimate uses reading and writing scores as model inputs. The prediction is an estimate, not a guaranteed exam result.
+      </footer>
+    </section>
+  </main>
+</body>
+</html>

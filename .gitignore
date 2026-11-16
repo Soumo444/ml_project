@@ -1,0 +1,35 @@
+# Python
+__pycache__/
+*.py[cod]
+*.egg-info/
+build/
+dist/
+
+# Virtual environments
+.venv/
+venv/
+env/
+
+# Jupyter
+.ipynb_checkpoints/
+
+# Logs
+logs/
+*.log
+
+# Local data and trained models
+/data/
+/models/
+artifacts/*
+!artifacts/model.joblib
+student-score-beanstalk.zip
+*.pt
+*.pth
+*.onnx
+*.h5
+
+# Editor and operating system files
+.vscode/
+.idea/
+.DS_Store
+Thumbs.db

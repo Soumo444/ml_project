@@ -1,0 +1,24 @@
+-r requirements.txt
+
+matplotlib
+seaborn
+statsmodels
+plotly
+jupyterlab
+ipykernel
+nltk
+openpyxl
+torch
+torchvision
+torchaudio
+tensorflow
+transformers
+datasets
+spacy
+sentencepiece
+accelerate
+xgboost
+imbalanced-learn
+opencv-python
+pillow
+beautifulsoup4
