@@ -90,12 +90,16 @@ environment:
 
 - Application: `student-math-score`
 - Environment: `Student-math-score-env`
+- Pipeline: `student-math-score-pipeline`
 - Region: `ap-southeast-2`
 - Platform: Python 3.15 on 64-bit Amazon Linux 2023
 
+Pipeline console: [student-math-score-pipeline](https://ap-southeast-2.console.aws.amazon.com/codesuite/codepipeline/pipelines/student-math-score-pipeline/view?region=ap-southeast-2)
+
 The pipeline source is the GitHub repository, and the deploy stage creates a
-new Elastic Beanstalk application version from each commit. To release a
-change, commit and push:
+new Elastic Beanstalk application version from each commit. The GitHub
+connection is authorized once in **Developer Tools > Settings > Connections**
+in the AWS console. To release a change, commit and push:
 
 ```powershell
 git add .
