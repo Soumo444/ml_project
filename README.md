@@ -4,11 +4,15 @@ Learning project for data ingestion, transformation, model training, and predict
 
 ## Live demo
 
-The app is deployed on AWS Elastic Beanstalk in `ap-southeast-2`:
+The app is deployed on AWS in `ap-southeast-2` two ways:
 
-http://Student-math-score-env.eba-2bxkhthf.ap-southeast-2.elasticbeanstalk.com/
+| Target | URL |
+|---|---|
+| Elastic Beanstalk | http://Student-math-score-env.eba-2bxkhthf.ap-southeast-2.elasticbeanstalk.com/ |
+| EC2 container (image from ECR) | http://16.179.91.250/ |
 
-Every push to `main` is deployed automatically by AWS CodePipeline.
+Every push to `main` is deployed automatically to Elastic Beanstalk by AWS CodePipeline.
+The EC2 container is updated manually by pushing a new image to ECR.
 
 ## Set up the development environment
 
@@ -140,6 +144,40 @@ and [Procfile reference](https://docs.aws.amazon.com/elasticbeanstalk/latest/dg/
 
 AWS resources can incur charges. When finished experimenting, delete the
 Elastic Beanstalk environment (and application if no longer needed).
+
+## Deploy the Docker image to EC2 with ECR
+
+The `Dockerfile` builds the same Flask app with Gunicorn on port 8000.
+
+- ECR repository: `784004374763.dkr.ecr.ap-southeast-2.amazonaws.com/student-math-score`
+- EC2 instance: `t3.micro`, Amazon Linux 2023, container port 8000 mapped to host port 80
+- Instance role: `student-math-score-ec2-ecr-role` (ECR read-only + SSM)
+
+Build and push a new image:
+
+```powershell
+aws ecr get-login-password --region ap-southeast-2 --profile deploy |
+  docker login --username AWS --password-stdin 784004374763.dkr.ecr.ap-southeast-2.amazonaws.com
+
+docker build -t 784004374763.dkr.ecr.ap-southeast-2.amazonaws.com/student-math-score:latest .
+docker push 784004374763.dkr.ecr.ap-southeast-2.amazonaws.com/student-math-score:latest
+```
+
+Restart the container on the instance so it pulls the new image. Through SSM:
+
+```powershell
+aws ssm send-command --region ap-southeast-2 --profile deploy `
+  --instance-ids i-05ae08b9b55b97c35 `
+  --document-name "AWS-RunShellScript" `
+  --parameters "commands=['docker pull 784004374763.dkr.ecr.ap-southeast-2.amazonaws.com/student-math-score:latest','docker rm -f student-math-score','docker run -d --restart always --name student-math-score -p 80:8000 784004374763.dkr.ecr.ap-southeast-2.amazonaws.com/student-math-score:latest']"
+```
+
+The container starts on boot with `--restart always`. The public IP changes if the
+instance is stopped and started. Terminate the instance to stop EC2 charges:
+
+```powershell
+aws ec2 terminate-instances --instance-ids i-05ae08b9b55b97c35 --region ap-southeast-2 --profile deploy
+```
 
 ## Shared utilities
 

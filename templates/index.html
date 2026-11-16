@@ -4,6 +4,7 @@
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
   <title>Math Score Predictor</title>
+  <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Crect width='32' height='32' rx='7' fill='%23172b4d'/%3E%3Ctext x='16' y='23' font-family='Arial' font-size='18' font-weight='bold' fill='%23a9c7ff' text-anchor='middle'%3EM%3C/text%3E%3C/svg%3E">
   <style>
     :root {
       color-scheme: light;
@@ -106,6 +107,25 @@
 
     button:hover { background: #1e50a5; }
 
+    .actions {
+      display: flex;
+      gap: 12px;
+      margin-top: 26px;
+    }
+
+    .actions button { margin-top: 0; }
+    .actions button[type="submit"] { flex: 1; }
+
+    button.secondary {
+      flex: 0 0 auto;
+      padding: 0 22px;
+      border: 1px solid #cbd5e3;
+      background: #fff;
+      color: #2862c5;
+    }
+
+    button.secondary:hover { background: #f2f6fd; }
+
     .message {
       margin: 0 36px 28px;
       padding: 14px 16px;
@@ -173,7 +193,10 @@
           </div>
           {% endfor %}
         </div>
-        <button type="submit">Predict math score</button>
+        <div class="actions">
+          <button type="submit">Predict math score</button>
+          <button type="reset" class="secondary">Clear</button>
+        </div>
       </form>
 
       {% if error %}

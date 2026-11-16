@@ -3,7 +3,7 @@
 from pathlib import Path
 
 import pandas as pd
-from flask import Flask, render_template, request
+from flask import Flask, jsonify, render_template, request
 
 from src.exception import PredictionError
 from src.logger import get_logger
@@ -13,6 +13,7 @@ from src.pipeline.predict_pipeline import PredictionPipeline
 PROJECT_ROOT = Path(__file__).resolve().parent
 MODEL_PATH = PROJECT_ROOT / "artifacts" / "model.joblib"
 logger = get_logger(__name__)
+_PIPELINE_CACHE: dict[tuple[str, float], PredictionPipeline] = {}
 
 CATEGORICAL_OPTIONS = {
     "gender": ("female", "male"),
@@ -43,6 +44,24 @@ FIELD_LABELS = {
 def create_app() -> Flask:
     """Create the Flask application."""
     app = Flask(__name__)
+    app.config["MAX_CONTENT_LENGTH"] = 1 * 1024 * 1024
+
+    @app.after_request
+    def add_security_headers(response):
+        """Apply conservative security headers to every response."""
+        response.headers.setdefault("X-Content-Type-Options", "nosniff")
+        response.headers.setdefault("X-Frame-Options", "DENY")
+        response.headers.setdefault("Referrer-Policy", "no-referrer")
+        return response
+
+    @app.get("/health")
+    def health():
+        """Report whether the app can serve predictions."""
+        model_ready = MODEL_PATH.is_file()
+        return (
+            jsonify({"status": "ok" if model_ready else "degraded", "model_ready": model_ready}),
+            200 if model_ready else 503,
+        )
 
     @app.route("/", methods=["GET", "POST"])
     def index():
@@ -83,11 +102,18 @@ def create_app() -> Flask:
                             }
                         ]
                     )
-                    result = PredictionPipeline(MODEL_PATH).predict(features)
+                    result = _get_pipeline(MODEL_PATH).predict(features)
                     prediction = float(result.loc[0, "predicted_math_score"])
                 except PredictionError as exception:
                     logger.exception("Could not process a math-score prediction.")
                     error = f"Prediction failed: {exception}"
+                    status_code = 503
+                except Exception:
+                    logger.exception("Unexpected error while predicting a math score.")
+                    error = (
+                        "Something went wrong while making the prediction. "
+                        "Please try again in a moment."
+                    )
                     status_code = 503
 
         return (
@@ -103,6 +129,17 @@ def create_app() -> Flask:
         )
 
     return app
+
+
+def _get_pipeline(model_path: Path) -> PredictionPipeline:
+    """Return a cached pipeline, reloading it when the model file changes."""
+    cache_key = (str(model_path), model_path.stat().st_mtime)
+    pipeline = _PIPELINE_CACHE.get(cache_key)
+    if pipeline is None:
+        _PIPELINE_CACHE.clear()
+        pipeline = PredictionPipeline(model_path)
+        _PIPELINE_CACHE[cache_key] = pipeline
+    return pipeline
 
 
 def _validate_form(form_data: dict[str, str]) -> str | None:
