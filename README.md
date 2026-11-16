@@ -96,6 +96,8 @@ environment:
 
 Pipeline console: [student-math-score-pipeline](https://ap-southeast-2.console.aws.amazon.com/codesuite/codepipeline/pipelines/student-math-score-pipeline/view?region=ap-southeast-2)
 
+Deployment flow: GitHub push to `main` → `Source` → `Deploy` → `Student-math-score-env`.
+
 The pipeline source is the GitHub repository, and the deploy stage creates a
 new Elastic Beanstalk application version from each commit. The GitHub
 connection is authorized once in **Developer Tools > Settings > Connections**
